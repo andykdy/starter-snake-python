@@ -2,8 +2,9 @@ import json
 import os
 import random
 import bottle
-
+from strategy import *
 from api import ping_response, start_response, move_response, end_response
+
 
 @bottle.route('/')
 def index():
@@ -38,8 +39,14 @@ def start():
     TODO: If you intend to have a stateful snake AI,
             initialize your snake state here using the
             request's data if necessary.
+            
+            Analyze playfield and initialize strategy
     """
     print(json.dumps(data))
+    board = data["board"]
+    me = data["you"]
+    global strategy
+    strategy = Start(me, board)
 
     color = "#00FF00"
 
@@ -55,11 +62,13 @@ def move():
             snake AI must choose a direction to move in.
     """
     print(json.dumps(data))
+    board = data["board"]
+    me = data["you"]
+    strategy.update(me, board)
+    closest = strategy.nearest_food()
 
-    directions = ['up', 'down', 'left', 'right']
-    direction = random.choice(directions)
 
-    return move_response(direction)
+    return move_response(strategy.calculate_move())
 
 
 @bottle.post('/end')
